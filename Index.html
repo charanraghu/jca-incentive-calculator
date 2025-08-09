@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCA Incentive Calculator | Jio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --jio-blue: #0066CC;
+            --jio-dark-blue: #004499;
+            --jio-light-blue: #E6F2FF;
+            --jio-purple: #662D91;
+            --jio-red: #D32F2F;
+            --jio-green: #00C853;
+            --jio-gray-100: #F5F5F5;
+            --jio-gray-200: #EEEEEE;
+            --jio-gray-300: #E0E0E0;
+            --jio-gray-600: #757575;
+            --jio-gray-800: #424242;
+            --jio-white: #FFFFFF;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--jio-gray-100);
+            color: var(--jio-gray-800);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--jio-white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 102, 204, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--jio-blue) 0%, var(--jio-purple) 100%);
+            color: var(--jio-white);
+            padding: 32px 24px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+        
+        .content {
+            padding: 0;
+        }
+        
+        .accordion-item {
+            border-bottom: 1px solid var(--jio-gray-200);
+        }
+        
+        .accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            background: var(--jio-white);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--jio-blue);
+        }
+        
+        .accordion-header:hover {
+            background: var(--jio-light-blue);
+        }
+        
+        .accordion-header.active {
+            background: var(--jio-light-blue);
+        }
+        
+        .accordion-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--jio-blue);
+            color: var(--jio-white);
+            font-size: 14px;
+            transition: transform 0.3s ease;
+        }
+        
+        .accordion-header.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+        
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            background: var(--jio-gray-100);
+        }
+        
+        .accordion-content.active {
+            max-height: 300px;
+            padding: 24px;
+        }
+        
+        .input-grid {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-label {
+            font-weight: 500;
+            color: var(--jio-gray-800);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .input-field {
+            padding: 14px 16px;
+            border: 2px solid var(--jio-gray-300);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: var(--jio-white);
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: var(--jio-blue);
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+        
+        .calculate-btn {
+            width: 100%;
+            padding: 18px;
+            margin: 24px;
+            margin-bottom: 32px;
+            background: linear-gradient(135deg, var(--jio-red) 0%, #E91E63 100%);
+            color: var(--jio-white);
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(211, 47, 47, 0.3);
+        }
+        
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content {
+            background: var(--jio-white);
+            margin: 5% auto;
+            border-radius: 12px;
+            width: 95%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow: hidden;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-30px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, var(--jio-green) 0%, var(--jio-blue) 100%);
+            color: var(--jio-white);
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--jio-white);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .modal-body {
+            padding: 0;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .result-section {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--jio-gray-200);
+        }
+        
+        .result-section:last-child {
+            border-bottom: none;
+        }
+        
+        .result-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--jio-blue);
+            margin-bottom: 16px;
+        }
+        
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--jio-gray-200);
+        }
+        
+        .calc-row:last-child {
+            border-bottom: none;
+            font-weight: 600;
+            margin-top: 8px;
+            padding-top: 12px;
+            border-top: 2px solid var(--jio-blue);
+        }
+        
+        .footnote {
+            background: #FFEBEE;
+            color: var(--jio-red);
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin-top: 12px;
+            border-left: 4px solid var(--jio-red);
+        }
+        
+        .total-section {
+            background: linear-gradient(135deg, var(--jio-green) 0%, var(--jio-blue) 100%);
+            color: var(--jio-white);
+            padding: 24px;
+            text-align: center;
+        }
+        
+        .total-amount {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .total-breakdown {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 24px 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .accordion-header {
+                padding: 16px 20px;
+                font-size: 1rem;
+            }
+            
+            .accordion-content.active {
+                padding: 20px;
+            }
+            
+            .calculate-btn {
+                margin: 20px;
+            }
+            
+            .modal-content {
+                margin: 10% auto;
+                width: 98%;
+            }
+            
+            .total-amount {
+                font-size: 1.8rem;
+            }
+        }
+        
+        .program-badge {
+            display: inline-block;
+            background: var(--jio-blue);
+            color: var(--jio-white);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-left: 8px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>JCA Incentive Calculator</h1>
+        </header>
+        
+        <main class="content">
+            <!-- SC Plus Program Section -->
+            <div class="accordion-item">
+                <button class="accordion-header" onclick="toggleAccordion('sc-plus')">
+                    <span>SC+ Program <span class="program-badge">Lap Based</span></span>
+                    <div class="accordion-icon">▼</div>
+                </button>
+                <div class="accordion-content" id="sc-plus">
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label class="input-label" for="sc-ec"># EC - Input EC calls in the lap</label>
+                            <input type="number" id="sc-ec" class="input-field" min="0" placeholder="Enter EC calls">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label" for="sc-rc"># RC - Input recharge nos in the lap</label>
+                            <input type="number" id="sc-rc" class="input-field" min="0" placeholder="Enter RC numbers">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recharge Reminder Program Section -->
+            <div class="accordion-item">
+                <button class="accordion-header" onclick="toggleAccordion('recharge-reminder')">
+                    <span>Recharge Reminder Program <span class="program-badge">Monthly</span></span>
+                    <div class="accordion-icon">▼</div>
+                </button>
+                <div class="accordion-content" id="recharge-reminder">
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label class="input-label" for="rr-ec"># EC - Input EC calls in the month</label>
+                            <input type="number" id="rr-ec" class="input-field" min="0" placeholder="Enter EC calls">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label" for="rr-rc"># RC - Enter RC nos in the month</label>
+                            <input type="number" id="rr-rc" class="input-field" min="0" placeholder="Enter RC numbers">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="calculate-btn" onclick="calculateIncentive()">
+                Calculate Incentive
+            </button>
+        </main>
+    </div>
+    
+    <!-- Modal -->
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Incentive Results</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="calculationResults"></div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleAccordion(sectionId) {
+            const content = document.getElementById(sectionId);
+            const header = content.previousElementSibling;
+            const isActive = content.classList.contains('active');
+            
+            // Close all accordion sections
+            document.querySelectorAll('.accordion-content').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelectorAll('.accordion-header').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // If not currently active, open this section
+            if (!isActive) {
+                content.classList.add('active');
+                header.classList.add('active');
+            }
+        }
+        
+        function calculateIncentive() {
+            // Get input values
+            const scEC = parseInt(document.getElementById('sc-ec').value) || 0;
+            const scRC = parseInt(document.getElementById('sc-rc').value) || 0;
+            const rrEC = parseInt(document.getElementById('rr-ec').value) || 0;
+            const rrRC = parseInt(document.getElementById('rr-rc').value) || 0;
+            
+            // Calculate SC Plus Program
+            let scPlusResult = '';
+            let scPlusTotal = 0;
+            let scPlusMonthlyTotal = 0;
+            
+            if (scRC < 15) {
+                scPlusResult = `
+                    <div class="result-section">
+                        <div class="result-title">SC+ Program</div>
+                        <div class="calc-row">
+                            <span>Incentive Amount:</span>
+                            <span>₹ 0</span>
+                        </div>
+                        <div class="footnote">Below 15 RC done - incentive not eligible</div>
+                    </div>
+                `;
+            } else {
+                const slabRC = scRC * 50;
+                const callConnect = scEC * 2;
+                scPlusTotal = slabRC + callConnect;
+                scPlusMonthlyTotal = scPlusTotal * 3;
+                
+                scPlusResult = `
+                    <div class="result-section">
+                        <div class="result-title">SC+ Program</div>
+                        <div class="calc-row">
+                            <span>Slab RC:</span>
+                            <span>${scRC} × 50 = ₹ ${slabRC.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="calc-row">
+                            <span>Call Connect:</span>
+                            <span>${scEC} × 2 = ₹ ${callConnect.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="calc-row">
+                            <span>Total for One Lap:</span>
+                            <span>₹ ${scPlusTotal.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="calc-row">
+                            <span><strong>Total for Month (3 Laps):</strong></span>
+                            <span><strong>₹ ${scPlusMonthlyTotal.toLocaleString('en-IN')}</strong></span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Calculate Recharge Reminder Program
+            let rrIncentive = 0;
+            let rrExplanation = '';
+            
+            if (rrRC < 100) {
+                rrIncentive = 2 * rrRC;
+                rrExplanation = `2 × ${rrRC} = ₹ ${rrIncentive.toLocaleString('en-IN')}`;
+            } else {
+                if (rrEC < 500) {
+                    rrIncentive = 2 * rrRC;
+                    rrExplanation = `2 × ${rrRC} = ₹ ${rrIncentive.toLocaleString('en-IN')}`;
+                } else if (rrEC >= 500 && rrEC < 1000) {
+                    rrIncentive = 10 * rrRC;
+                    rrExplanation = `10 × ${rrRC} = ₹ ${rrIncentive.toLocaleString('en-IN')}`;
+                } else if (rrEC >= 1000 && rrEC < 1500) {
+                    rrIncentive = 15 * rrRC;
+                    rrExplanation = `15 × ${rrRC} = ₹ ${rrIncentive.toLocaleString('en-IN')}`;
+                } else if (rrEC >= 1500) {
+                    rrIncentive = 20 * rrRC;
+                    rrExplanation = `20 × ${rrRC} = ₹ ${rrIncentive.toLocaleString('en-IN')}`;
+                }
+            }
+            
+            const rrResult = `
+                <div class="result-section">
+                    <div class="result-title">Recharge Reminder Program</div>
+                    <div class="calc-row">
+                        <span><strong>RR Month Incentive:</strong></span>
+                        <span><strong>${rrExplanation}</strong></span>
+                    </div>
+                </div>
+            `;
+            
+            // Calculate Total Incentive
+            const totalIncentive = scPlusMonthlyTotal + rrIncentive;
+            
+            const totalResult = `
+                <div class="total-section">
+                    <div class="total-amount">₹ ${totalIncentive.toLocaleString('en-IN')}</div>
+                    <div class="total-breakdown">
+                        Total Monthly Incentive<br>
+                        <small>SC+: ₹ ${scPlusMonthlyTotal.toLocaleString('en-IN')} + RR Program: ₹ ${rrIncentive.toLocaleString('en-IN')}</small>
+                    </div>
+                </div>
+            `;
+            
+            // Display results in modal
+            document.getElementById('calculationResults').innerHTML = 
+                scPlusResult + rrResult + totalResult;
+            
+            // Show modal
+            document.getElementById('resultModal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('resultModal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('resultModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+        
+        // Input validation
+        document.querySelectorAll('.input-field').forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.value < 0) {
+                    this.value = 0;
+                }
+            });
+        });
+        
+        // Auto-open first section on load
+        window.onload = function() {
+            toggleAccordion('sc-plus');
+        };
+    </script>
+</body>
+</html> 
